@@ -1194,6 +1194,9 @@ session_established2(El, StateData) ->
     Server = NewStateData#state.server,
     FromJID = NewStateData#state.jid,
     To = fxml:get_attr_s(<<"to">>, Attrs),
+    To = ejabberd_hooks:run_fold(
+	      user_send_packet_to, Server, To,
+	      [NewStateData, FromJID, To]),
     ToJID = case To of
 	      <<"">> -> jid:make(User, Server, <<"">>);
 	      _ -> jid:from_string(To)
