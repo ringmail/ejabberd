@@ -1194,7 +1194,7 @@ session_established2(El, StateData) ->
     Server = NewStateData#state.server,
     FromJID = NewStateData#state.jid,
     OrigTo = fxml:get_attr_s(<<"to">>, Attrs),
-    {To, FromJID} = case Name of
+    {To, ReplyJID} = case Name of
 	      <<"message">> -> ejabberd_hooks:run_fold(user_send_packet_to, Server, OrigTo, [FromJID, NewStateData]);
 	      _ -> {OrigTo, FromJID}
          end,
@@ -1263,9 +1263,13 @@ session_established2(El, StateData) ->
 						     FromJID, ToJID, NewEl0)
 			   end;
 		       <<"message">> ->
-			   NewEl0 = ejabberd_hooks:run_fold(
+			   NewEl2 = ejabberd_hooks:run_fold(
 				      user_send_packet, Server, NewEl,
 				      [NewStateData, FromJID, ToJID]),
+               NewEl0 = ejabberd_hooks:run_fold(
+                      user_send_packet_from, Server, NewEl2,
+                      [ReplyJID, FromJID]),
+				),
 			   check_privacy_route(FromJID, NewStateData, FromJID,
 					       ToJID, NewEl0);
 		       _ -> NewStateData
