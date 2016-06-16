@@ -1263,13 +1263,10 @@ session_established2(El, StateData) ->
 						     FromJID, ToJID, NewEl0)
 			   end;
 		       <<"message">> ->
-			   NewEl2 = ejabberd_hooks:run_fold(
+			   NewEl0 = ejabberd_hooks:run_fold(
 				      user_send_packet, Server, NewEl,
 				      [NewStateData, FromJID, ToJID]),
-               NewEl0 = ejabberd_hooks:run_fold(
-                      user_send_packet_from, Server, NewEl2,
-                      [ReplyJID, FromJID]),
-			   check_privacy_route(FromJID, NewStateData, FromJID,
+			   check_privacy_route(FromJID, NewStateData, ReplyJID,
 					       ToJID, NewEl0);
 		       _ -> NewStateData
 		     end
