@@ -1194,23 +1194,27 @@ session_established2(El, StateData) ->
     Server = NewStateData#state.server,
     FromJID = NewStateData#state.jid,
     OrigTo = fxml:get_attr_s(<<"to">>, Attrs),
-    {To, ReplyJID} = case Name of
+    {To, ReplyJID, DeviceContactID} = case Name of
 	      <<"message">> -> ejabberd_hooks:run_fold(user_send_packet_to, Server, OrigTo, [FromJID, NewStateData, Attrs]);
-	      _ -> {OrigTo, FromJID}
+	      _ -> {OrigTo, FromJID, null}
          end,
     ToJID = case To of
 	      <<"">> -> jid:make(User, Server, <<"">>);
 	      _ -> jid:from_string(To)
 	    end,
     NewEl1 = jlib:remove_attr(<<"xmlns">>, El),
+	NewEl2 = case Name of
+		<<"message">> -> ejabberd_hooks:run_fold(user_send_packet_update, Server, NewEl1, [DeviceContactID]);
+		_ -> NewEl1
+	end,
     NewEl = case fxml:get_attr_s(<<"xml:lang">>, Attrs) of
 	      <<"">> ->
 		  case NewStateData#state.lang of
-		    <<"">> -> NewEl1;
+		    <<"">> -> NewEl2;
 		    Lang ->
-			fxml:replace_tag_attr(<<"xml:lang">>, Lang, NewEl1)
+			fxml:replace_tag_attr(<<"xml:lang">>, Lang, NewEl2)
 		  end;
-	      _ -> NewEl1
+	      _ -> NewEl2
 	    end,
     NewState = case ToJID of
 		 error ->
